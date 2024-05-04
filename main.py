@@ -4,6 +4,7 @@ import subprocess
 import json
 import time
 
+#Function to get the Video Infomation HDR or SDR using FFprobe
 def get_video_color_transfer(input_file):
     command = ["ffprobe", "-v", "quiet", "-print_format", "json", "-show_streams", "-select_streams", "v:0", input_file]
     result = subprocess.run(command, capture_output=True, text=True)
@@ -17,6 +18,7 @@ def get_video_color_transfer(input_file):
         print(result.stderr)
     return None
 
+#Encode the Video into different variant based on input parameter and insert the image for SDR format
 def transcode_video(input_file, output_file, resolution, overlay_image):
     command = [
         'ffmpeg',
@@ -31,6 +33,7 @@ def transcode_video(input_file, output_file, resolution, overlay_image):
     ]
     subprocess.run(command)
 
+#Encode the Video into different variant based on input parameter and insert the image for HDR format
 def transcode_video_HDR(input_file, output_file, resolution, overlay_image):
     command = [
         'ffmpeg',
@@ -45,6 +48,8 @@ def transcode_video_HDR(input_file, output_file, resolution, overlay_image):
     ]
     subprocess.run(command)
 
+#Encode the Video into different variant based on input parameter and insert the image
+#Covert the HDR video into SDR format
 def transcode_video_to_SDR(input_file, output_file, resolution, overlay_image):
     command = [
     'ffmpeg', 
@@ -61,7 +66,7 @@ def transcode_video_to_SDR(input_file, output_file, resolution, overlay_image):
     subprocess.run(command)
 
 
-
+#Fragmenting an MP4 file involves breaking it into smaller
 def frag_dash(output_file,segment_duration=7000):
     command = [
         'mp4fragment',
@@ -71,6 +76,7 @@ def frag_dash(output_file,segment_duration=7000):
     ]
     subprocess.run(command)
 
+#Using mp4dash preparing MP4 content for DASH streaming format
 def package_dash(output_dir):
     command = [
         'mp4dash',
@@ -83,10 +89,12 @@ def package_dash(output_dir):
         print("Error:", stderr.decode())
     else:
         print("Package created successfully.")
-    os.remove('temp.mp4')  # Corrected typo
+    os.remove('temp.mp4')
+
+#main func Usage python script.py sdr_sample_vide.mp4
 def main():
     if len(sys.argv) != 2:
-        print("Usage: python script.py input_video.mp4")
+        print("Usage: python script.py sdr_sample_vide.mp4")
         sys.exit(1)
 
     input_file = sys.argv[1]
@@ -106,7 +114,7 @@ def main():
             output_dir = f"{resolution}_HDR_dash"
             frag_dash(output_file)
             package_dash(output_dir)
-            os.remove(output_file)  # Optional: Remove the temporary MP4 file after packaging
+            os.remove(output_file)  #Remove the temporary MP4 file after packaging
         overlay_image = "white_circle.png"
         resolutions = {'360p': 360, '480p': 480, '720p': 720, '1080p': 1080}
         for resolution, height in resolutions.items():
@@ -115,7 +123,7 @@ def main():
             output_dir = f"{resolution}_SDR_dash"
             frag_dash(output_file, segment_duration)
             package_dash(output_dir)
-            os.remove(output_file)
+            os.remove(output_file) #Remove the temporary MP4 file after packaging
     else:
         overlay_image = "white_circle.png"
         resolutions = {'360p': 360, '480p': 480, '720p': 720, '1080p': 1080}
@@ -125,7 +133,7 @@ def main():
             output_dir = f"{resolution}_dash"
             frag_dash(output_file, segment_duration)
             package_dash(output_dir)
-            os.remove(output_file)  # Optional: Remove the temporary MP4 file after packaging
+            os.remove(output_file)  # Remove the temporary MP4 file after packaging
 
 if __name__ == "__main__":
     main()
